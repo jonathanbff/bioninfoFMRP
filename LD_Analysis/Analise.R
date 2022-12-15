@@ -1,0 +1,1 @@
+read.pedfile(CruseA.ped, first.row = NA, coded = NULL, naVal = 0, sep = " ",  p2g = FALSE, non.rs.IDs = FALSE, cols4ID=FALSE)
