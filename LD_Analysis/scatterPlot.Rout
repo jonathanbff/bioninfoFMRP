@@ -1,0 +1,228 @@
+
+R version 3.3.2 (2016-10-31) -- "Sincere Pumpkin Patch"
+Copyright (C) 2016 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> if(!require("ggplot2")) {
++    install.packages("ggplot2", dependencies=TRUE)
++    if(!require("ggplot2")) stop ("ggplot2 not found")
++ }
+Loading required package: ggplot2
+> 
+> if(!require("ggrepel")) {
++    install.packages("ggrepel", dependencies=TRUE)
++    if(!require("ggrepel")) stop ("ggrepel not found")
++ }
+Loading required package: ggrepel
+> 
+> if(!require("tidyr")) {
++    install.packages("tidyr", dependencies=TRUE)
++    if(!require("tidyr")) stop ("tidyr not found")
++ }
+Loading required package: tidyr
+> 
+> if(!require("dplyr")) {
++    install.packages("dplyr", dependencies=TRUE)
++    if(!require("dplyr")) stop ("dplyr not found")
++ }
+Loading required package: dplyr
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> 
+> if(!require("scales")) {
++    install.packages("scales", dependencies=TRUE)
++    if(!require("scales")) stop ("scales not found")
++ }
+Loading required package: scales
+> 
+> ##########################################################
+> ## CODE FOR GENERATING VOLCANO PLOTS                    ##
+> ## ADAPTED FROM JULIA -- SCRIPT AUTOMATICALLY GENERATED ##
+> ## LAST MODIFIED 3/20/2019 - KBRIN BIOINFORMATICS CORE  ##
+> ##########################################################
+> 
+> Sys.setenv("DISPLAY"=":0")                     ## NEED SO X11 WORKS PROPERLY
+> df <- read.csv("LOD_scatter.txt", header=TRUE, sep="\t")
+> FN <- "LOD_scatterPlot.png"                                # output file name
+> title <-"LOD vs. Distance"     # plot title 
+> 
+> df$sig <- "LOD <= 3"
+> df$sig[df$LOD > 3] <- "LOD > 3"
+> df$sig[df$LOD > 200] <- "LOD > 200"
+> 
+> maxCoord <- 30000
+> minCoord <- 0
+> minPVal <- min(df$p_value)
+Warning message:
+In min(df$p_value) : no non-missing arguments to min; returning Inf
+> minCoord
+[1] 0
+> maxCoord
+[1] 30000
+> maxYCoord <- max(df$LOD)
+> df$gene <- rownames(df)
+> input <- df
+> topGenes <- head(input, 20)                                                    # top 20 genes
+> topGenes
+            DISTANCE    LOD       sig        gene
+14408/23403     8995 708.00 LOD > 200 14408/23403
+241/14408      14167 698.05 LOD > 200   241/14408
+241/23403      23162 697.55 LOD > 200   241/23403
+3037/14408     11371 618.42 LOD > 200  3037/14408
+3037/23403     20366 617.25 LOD > 200  3037/23403
+241/3037        2796 611.10 LOD > 200    241/3037
+8782/28144     19362 578.84 LOD > 200  8782/28144
+17747/17858      111 498.28 LOD > 200 17747/17858
+17858/18060      202 475.05 LOD > 200 17858/18060
+1059/25563     24504 473.96 LOD > 200  1059/25563
+17747/18060      313 470.58 LOD > 200 17747/18060
+14408/25563    11155 465.01 LOD > 200 14408/25563
+23403/25563     2160 463.95 LOD > 200 23403/25563
+241/25563      25322 459.23 LOD > 200   241/25563
+3037/25563     22526 382.16 LOD > 200  3037/25563
+18060/28144    10084 372.32 LOD > 200 18060/28144
+8782/18060      9278 371.20 LOD > 200  8782/18060
+17858/28144    10286 363.07 LOD > 200 17858/28144
+8782/17858      9076 361.99 LOD > 200  8782/17858
+17747/28144    10397 359.24 LOD > 200 17747/28144
+> 
+> png(FN, units="in", width=10, height=5, res=300, type="cairo")
+> 
+> ############################
+> ## CREATE LOD scatterplot ##
+> ############################
+> p = ggplot(input, aes(DISTANCE, LOD)) +
++   geom_point(aes(col=sig)) +                                                         # add points colored by significance
++   scale_color_manual(values=c("black", "pink", "red")) + 
++   labs(title=title, x ="Distance", y = "LOD")  +
++   scale_x_continuous(limits = c(minCoord, maxCoord),breaks=pretty_breaks(n=11)) +                  # limits printing every other value
++   scale_y_continuous(limits = c(0, maxYCoord),breaks=pretty_breaks(n=11)) +                 # limits printing every value
++ 
++   geom_text_repel(data=topGenes, aes(label=gene), size = 3) +                 # adding text for the top 20 genes
++   theme(legend.title=element_blank(),plot.title = element_text(hjust = 0.5))
+> p
+> dev.off()
+null device 
+          1 
+> 
+> ############################
+> ## CREATE R^2 Scatterplot ##
+> ############################
+> df <- read.csv("r2_scatter.txt", header=TRUE, sep="\t")
+> FN <- "r2_scatterPlot.png"                                # output file name
+> title <-"r^2 vs. Distance"     # plot title
+> 
+> df$sig <- "r^2 <= 0.8"
+> df$sig[df$r2 > 0.8] <- "r^2 > 0.8"
+> df$sig[df$r2 > 0.9] <- "r^2 > 0.9"
+> 
+> maxCoord <- 30000
+> minCoord <- 0
+> minCoord
+[1] 0
+> maxCoord
+[1] 30000
+> maxYCoord <- max(df$r2)
+> df$gene <- rownames(df)
+> input <- df
+> topGenes <- head(input, 20)                                                    # top 20 genes
+> topGenes
+            DISTANCE    r2       sig        gene
+28882/28883        1 1.000 r^2 > 0.9 28882/28883
+17747/17858      111 1.000 r^2 > 0.9 17747/17858
+18998/29540    10542 1.000 r^2 > 0.9 18998/29540
+26729/28077     1348 1.000 r^2 > 0.9 26729/28077
+8782/28144     19362 1.000 r^2 > 0.9  8782/28144
+14408/23403     8995 1.000 r^2 > 0.9 14408/23403
+490/3177        2687 1.000 r^2 > 0.9    490/3177
+241/14408      14167 0.997 r^2 > 0.9   241/14408
+241/23403      23162 0.997 r^2 > 0.9   241/23403
+28881/28882        1 0.981 r^2 > 0.9 28881/28882
+28881/28883        2 0.981 r^2 > 0.9 28881/28883
+29867/29868        1 0.972 r^2 > 0.9 29867/29868
+17858/18060      202 0.968 r^2 > 0.9 17858/18060
+17747/18060      313 0.967 r^2 > 0.9 17747/18060
+490/18736      18246 0.961 r^2 > 0.9   490/18736
+3177/18736     15559 0.961 r^2 > 0.9  3177/18736
+18736/29700    10964 0.961 r^2 > 0.9 18736/29700
+490/28077      27587 0.927 r^2 > 0.9   490/28077
+3177/28077     24900 0.927 r^2 > 0.9  3177/28077
+3177/26729     23552 0.927 r^2 > 0.9  3177/26729
+> 
+> png(FN, units="in", width=10, height=5, res=300, type="cairo")
+> 
+> ############################
+> ## CREATE LOD scatterplot ##
+> ############################
+> p = ggplot(input, aes(DISTANCE, r2)) +
++   geom_point(aes(col=sig)) +                                                         # add points colored by significance
++   scale_color_manual(values=c("black", "pink", "red")) +
++   labs(title=title, x ="Distance", y = "r^2")  +
++   scale_x_continuous(limits = c(minCoord, maxCoord),breaks=pretty_breaks(n=11)) +                  # limits printing every other value
++   scale_y_continuous(limits = c(0, maxYCoord),breaks=pretty_breaks(n=11)) +                 # limits printing every value
++ 
++   geom_text_repel(data=topGenes, aes(label=gene), size = 3) +                 # adding text for the top 20 genes
++   theme(legend.title=element_blank(),plot.title = element_text(hjust = 0.5))
+> p
+> dev.off()
+null device 
+          1 
+> 
+> 
+> #####################################
+> ## END OF R CODE FOR VOLCANO PLOTS ##
+> #####################################
+> sessionInfo()
+R version 3.3.2 (2016-10-31)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: CentOS Linux 7 (Core)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] scales_0.5.0  dplyr_0.8.3   tidyr_0.8.3   ggrepel_0.8.0 ggplot2_3.0.0
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.2       digest_0.6.15    withr_2.1.2      crayon_1.3.4    
+ [5] assertthat_0.2.0 grid_3.3.2       plyr_1.8.4       R6_2.2.2        
+ [9] gtable_0.2.0     magrittr_1.5     pillar_1.4.2     rlang_0.4.0     
+[13] lazyeval_0.2.1   glue_1.3.1       purrr_0.2.5      munsell_0.5.0   
+[17] pkgconfig_2.0.1  colorspace_1.3-2 tidyselect_0.2.5 tibble_2.1.3    
+> 
+> proc.time()
+   user  system elapsed 
+  1.937   0.065   1.999 
